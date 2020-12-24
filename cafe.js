@@ -40,6 +40,65 @@ module.exports = {
     getArticleList: async function (cafeId, menuId = '') {
         return JSON.parse(await rp({ url: `https://apis.naver.com/cafe-web/cafe2/ArticleList.json?search.clubid=${cafeId}&search.perPage=5&search.menuid=${menuId}&search.queryType=lastArticle&moreManageMenus=false` }));
     },
+    attendancePost: async function(cookie, cafeId, menu, content){
+        let iconv = new require('iconv').Iconv('utf-8', 'CP949');
+        
+        console.log(await rp({
+            url: 'https://cafe.naver.com/AttendancePost.nhn',
+            method: 'post',
+            headers: {
+                'referer': 'https://cafe.naver.com/AttendanceView.nhn?search.clubid=29537083&search.menuid=95&search.attendyear=2020&search.attendmonth=12&search.attendday=10&search.page=1&lcs=Y',
+                'origin': 'https://cafe.naver.com',
+                'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
+                'sec-fetch-dest': 'iframe',
+                'sec-fetch-mode': 'navigate',
+                'sec-fetch-site': 'same-origin',
+                'sec-fetch-user': '?1',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `attendancePost.cafeId=${cafeId}&attendancePost.menuId=${menu}&attendancePost.page=1&attendancePost.emotion=11&attendancePost.content=${escape(iconv.convert(content).toString('binary'))}`,
+            jar: cookie
+        }))
+    },
+    /**
+     * @description SE One에디터의 노드 UUID를 렌덤으로 생성합니다.
+     */
+    getSEEditorNodeId: function(){
+        return "SE-"+require('uuid').v4();
+    },
+    writeArticle: async function (cookie, cafeId, title, content, menu, tags = [], open = false, naverOpen = true, externalOpen = true, enableComment = true, enableScrap = true, enableCopy = true, useAutoSource = false, cclTypes = [], useCcl = false){
+        let Obj = {};
+        Obj.article = {};
+        Obj.article.cafeId = cafeId;
+        Obj.article.contentJson = JSON.stringify(content);
+        Obj.article.from = "pc";
+        Obj.article.menuId = menu;
+        Obj.article.subject = title;
+        Obj.article.tagList = tags;
+        Obj.article.editorVersion = 4;
+        Obj.article.parentId = 0;
+        Obj.article.open = open;
+        Obj.article.naverOpen = naverOpen;
+        Obj.article.externalOpen = externalOpen;
+        Obj.article.enableComment = enableComment;
+        Obj.article.enableScrap = enableScrap;
+        Obj.article.enableCopy = enableCopy;
+        Obj.article.useAutoSource = useAutoSource;
+        Obj.article.cclTypes = cclTypes;
+        Obj.article.useCcl = useCcl;
+        return await rp({
+            url: `https://apis.naver.com/cafe-web/cafe-editor-api/v1.0/cafes/${cafeId}/menus/${menu}/articles`,
+            method: 'POST',
+            json: Obj,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0',
+                'Referer': `https://cafe.naver.com/ca-fe/cafes/${cafeId}/articles/write?boardType=L`,
+                'Origin': 'https://cafe.naver.com',
+                'X-Cafe-Product': 'pc'
+            },
+            jar: cookie
+        });
+    },
     /**
      * @description 카페 글에 댓글을 답니다.
      * @param {jar} cookie 네이버에 로그인된 쿠키 jar
@@ -159,16 +218,16 @@ cafe.comment(cookie, {
             jar: cookie
         }));
     },
-    // getTalkList: async function (cookie) {
-    //     return JSON.parse(await rp({
-    //         method: 'get',
-    //         url: 'https://talk.cafe.naver.com/talkapi/v3/channels',
-    //         headers: {
-    //             'referer': 'https://talk.cafe.naver.com/channels'
-    //         },
-    //         jar: cookie
-    //     }));
-    // },
+    getTalkList: async function (cookie) {
+        return JSON.parse(await rp({
+            method: 'get',
+            url: 'https://talk.cafe.naver.com/talkapi/v3/channels',
+            headers: {
+                'referer': 'https://talk.cafe.naver.com/channels'
+            },
+            jar: cookie
+        }));
+    },
     // connectTalk: async function (cookie, chatId, userId, callback) { //아몰랑 때려쳐!
     //     let token = await (function() {
     //         return new Promise((resolve, reject) => {
