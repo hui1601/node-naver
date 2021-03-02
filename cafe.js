@@ -32,6 +32,9 @@ module.exports = {
             }))
         ).message.result.club.clubid;
     },
+    getCafeWritten: async function (cafeId, WrittenId) { //글 및 댓글 JSON 불러오기
+        return JSON.parse(await rp({ url: `https://apis.naver.com/cafe-web/cafe-articleapi/v2/cafes/${cafeId}/articles/${WrittenId}`}));
+    },
     /**
      * @description 지정된 게시판 번호에서 글 목록을 가져옵니다. 게시판 번호가 지정되어있지 않으면 전체 글 목록을 가져옵니다.
      * @param {String} cafeId 숫자로 이루어진 카페 id
