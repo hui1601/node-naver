@@ -32,7 +32,7 @@ module.exports = {
             }))
         ).message.result.club.clubid;
     },
-    getCafeWritten: async function (cafeId, WrittenId) {
+    getCafeWritten: async function (cafeId, WrittenId) { //글 및 댓글 JSON 불러오기
         return JSON.parse(await rp({ url: `https://apis.naver.com/cafe-web/cafe-articleapi/v2/cafes/${cafeId}/articles/${WrittenId}`}));
     },
     /**
